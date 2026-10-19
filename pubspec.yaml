@@ -4,8 +4,8 @@ description: >-
   GFM support. The maintained replacement for the discontinued
   flutter_markdown package.
 version: 0.1.0
-repository: https://github.com/airtechsolutions/prism_markdown
-issue_tracker: https://github.com/airtechsolutions/prism_markdown/issues
+repository: https://github.com/awaisdev5765/prism_markdown
+issue_tracker: https://github.com/awaisdev5765/prism_markdown/issues
 topics:
   - markdown
   - widget
