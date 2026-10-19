@@ -114,6 +114,7 @@ class PrismMarkdownStyle {
         TextStyle(
           inherit: false,
           color: base.color,
+          fontFamily: base.fontFamily,
           fontSize: base.fontSize! * (1.75 - 0.13 * i),
           fontWeight: FontWeight.w700,
           height: 1.25,

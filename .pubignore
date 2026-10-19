@@ -1,0 +1,4 @@
+# Keep the published package slim — screenshots and fonts are repo-only.
+doc/
+test/fonts/
+test/screenshot_test.dart

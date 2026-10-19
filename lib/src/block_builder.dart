@@ -149,17 +149,28 @@ class BlockBuilder {
             child.attributes.containsKey('class') &&
             child.attributes['class']!.contains('task-list-item');
         String? checkbox;
+        var checked = false;
         var itemChildren = child.children ?? const <md.Node>[];
         if (isTask && itemChildren.isNotEmpty) {
           final first = itemChildren.first;
-          final checkboxText = first.textContent;
-          checkbox = checkboxText.trim().startsWith('[x]') ? '☑' : '☐';
-          if (first is md.Element && first.tag == 'p') {
-            final txt = first.textContent;
-            itemChildren = [
-              md.Text(txt.replaceFirst(RegExp(r'^\[[ xX]\]\s*'), '')),
-              ...itemChildren.skip(1),
-            ];
+          if (first is md.Element && first.tag == 'input') {
+            // TaskListExtension emits <input type=checkbox checked?> nodes.
+            checked = first.attributes['checked'] == 'true' ||
+                first.attributes.containsKey('checked');
+            checkbox = 'task'; // sentinel: render as a checkbox icon below
+            itemChildren = itemChildren.skip(1).toList();
+          } else {
+            // Legacy fallback: raw "[x]" text prefix.
+            final checkboxText = first.textContent;
+            checked = checkboxText.trim().startsWith('[x]');
+            checkbox = 'task';
+            if (first is md.Element && first.tag == 'p') {
+              final txt = first.textContent;
+              itemChildren = [
+                md.Text(txt.replaceFirst(RegExp(r'^\[[ xX]\]\s*'), '')),
+                ...itemChildren.skip(1),
+              ];
+            }
           }
         }
         // Loose list items are wrapped in a paragraph; tight list items
@@ -179,8 +190,20 @@ class BlockBuilder {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: ordered ? 28 : 16,
-                  child: Text(checkbox ?? marker, style: style.textStyle),
+                  width: checkbox != null ? 24 : (ordered ? 28 : 16),
+                  child: checkbox != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: Checkbox(
+                              value: checked,
+                              onChanged: null,
+                            ),
+                          ),
+                        )
+                      : Text(marker, style: style.textStyle),
                 ),
                 Expanded(
                   child: Padding(
