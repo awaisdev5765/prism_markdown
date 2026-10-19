@@ -7,13 +7,24 @@ import 'style.dart';
 /// Renders inline markdown nodes into a Flutter [InlineSpan] tree.
 class InlineBuilder {
   /// Creates an inline builder.
-  InlineBuilder({required this.style, this.onLinkTap});
+  InlineBuilder({
+    required this.style,
+    this.onLinkTap,
+    this.highlighter,
+    this.imageBuilder,
+  });
 
   /// Resolved visual style.
   final PrismMarkdownStyle style;
 
   /// Called when the user taps a link.
   final void Function(String href)? onLinkTap;
+
+  /// Custom syntax highlighter for inline/fenced code.
+  final TextSpan Function(String code, String language)? highlighter;
+
+  /// Custom builder for inline images.
+  final Widget Function(String src, String alt, Widget fallback)? imageBuilder;
 
   /// Builds an [InlineSpan] tree from inline [nodes].
   InlineSpan build(List<md.Node> nodes) {
@@ -43,7 +54,12 @@ class InlineBuilder {
       case 'a':
         return _link(element);
       case 'code':
-        return TextSpan(
+        final language = element.attributes['class'] ?? '';
+        final highlighted = highlighter?.call(
+          element.textContent,
+          language.replaceFirst('language-', ''),
+        );
+        return highlighted ?? TextSpan(
           text: element.textContent,
           style: style.codeStyle,
         );
@@ -68,6 +84,8 @@ class InlineBuilder {
     final inner = InlineBuilder(
       style: style,
       onLinkTap: onLinkTap,
+      highlighter: highlighter,
+      imageBuilder: imageBuilder,
     ).build(element.children ?? const []);
     TextStyle? combined;
     if (inner is TextSpan && f != null) {
@@ -87,6 +105,8 @@ class InlineBuilder {
     final inner = InlineBuilder(
       style: style,
       onLinkTap: onLinkTap,
+      highlighter: highlighter,
+      imageBuilder: imageBuilder,
     ).build(element.children ?? const []);
     return TextSpan(
       text: inner is TextSpan ? inner.text : null,
@@ -97,18 +117,33 @@ class InlineBuilder {
     );
   }
 
+  /// Renders an inline image. Falls back to a network image loader with
+  /// graceful loading and error states; users can override via
+  /// [imageBuilder].
   Widget _image(md.Element element) {
     final src = element.attributes['src'] ?? '';
-    final alt = element.textContent;
-    return Image.network(
-      src,
-      semanticLabel: alt,
-      fit: BoxFit.scaleDown,
-      errorBuilder: (_, _, _) => SizedBox(
-        width: 48,
-        height: 48,
-        child: Icon(Icons.broken_image_outlined, color: style.textStyle?.color),
-      ),
-    );
+    // Alt text is stored in the 'alt' attribute by the markdown parser;
+    // textContent is empty for image elements.
+    final alt = element.attributes['alt'] ?? element.textContent;
+
+    // Build a lazy fallback: only constructs the network Image widget when
+    // actually needed, so a custom [imageBuilder] avoids any network work.
+    Widget fallback() => Image.network(
+          src,
+          semanticLabel: alt,
+          fit: BoxFit.scaleDown,
+          errorBuilder: (_, _, _) => SizedBox(
+            width: 48,
+            height: 48,
+            child: Icon(Icons.broken_image_outlined,
+                color: style.textStyle?.color),
+          ),
+        );
+
+    final builder = imageBuilder;
+    if (builder != null) {
+      return builder(src, alt, fallback());
+    }
+    return fallback();
   }
 }

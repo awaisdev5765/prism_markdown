@@ -105,5 +105,73 @@ void main() {
       recognizer!.onTap!();
       expect(tapped, 'https://example.com');
     });
+
+    testWidgets('re-renders when data changes', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: PrismMarkdown('Before **old**'))),
+      );
+      expect(find.textContaining('old'), findsOneWidget);
+
+      // Simulate parent rebuilding with new data via a stateful wrapper.
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: PrismMarkdown('After **new**'))),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('old'), findsNothing);
+      expect(find.textContaining('new'), findsOneWidget);
+    });
+
+    testWidgets('highlighter callback is used for fenced code', (tester) async {
+      TextSpan highlighter(String code, String language) => TextSpan(
+        text: code,
+        style: TextStyle(color: language == 'dart' ? Colors.amber : null),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PrismMarkdown(
+              '```dart\nvoid main() {}\n```',
+              highlighter: highlighter,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Find the RichText rendered by the code block and verify the
+      // highlighter's style was applied (amber color for 'dart').
+      final richTexts = tester
+          .widgetList<RichText>(find.byType(RichText))
+          .where((rt) => rt.text.toPlainText().contains('void main()'))
+          .toList();
+      expect(richTexts, isNotEmpty);
+      // The highlighter's span is nested as a child of the root code-block
+      // span, so walk the tree looking for the amber color.
+      bool hasAmber(InlineSpan span) {
+        if (span.style?.color == Colors.amber) return true;
+        return span is TextSpan && (span.children?.any(hasAmber) ?? false);
+      }
+
+      expect(richTexts.any((rt) => hasAmber(rt.text)), isTrue);
+    });
+
+    testWidgets('imageBuilder callback receives src and alt', (tester) async {
+      Widget build(String src, String alt, Widget fallback) =>
+          Text('IMG:$src|$alt');
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PrismMarkdown(
+              '![alt text](https://example.com/a.png)',
+              imageBuilder: build,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('IMG:https://example.com/a.png|alt text'),
+        findsOneWidget,
+      );
+    });
   });
 }

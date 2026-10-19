@@ -7,13 +7,24 @@ import 'style.dart';
 /// Converts block-level markdown nodes into a list of Flutter widgets.
 class BlockBuilder {
   /// Creates a block builder.
-  BlockBuilder({required this.style, this.onLinkTap});
+  BlockBuilder({
+    required this.style,
+    this.onLinkTap,
+    this.highlighter,
+    this.imageBuilder,
+  });
 
   /// Resolved visual style.
   final PrismMarkdownStyle style;
 
   /// Called when the user taps a link.
   final void Function(String href)? onLinkTap;
+
+  /// Custom syntax highlighter for fenced code blocks.
+  final TextSpan Function(String code, String language)? highlighter;
+
+  /// Custom builder for inline images.
+  final Widget Function(String src, String alt, Widget fallback)? imageBuilder;
 
   /// Builds widgets from block [nodes].
   List<Widget> build(List<md.Node> nodes) {
@@ -88,6 +99,8 @@ class BlockBuilder {
     final children = BlockBuilder(
       style: style,
       onLinkTap: onLinkTap,
+      highlighter: highlighter,
+      imageBuilder: imageBuilder,
     ).build(node.children ?? const []);
     return Container(
       decoration: style.blockquoteDecoration,
@@ -103,11 +116,18 @@ class BlockBuilder {
   Widget _codeBlock(md.Element node) {
     final code = node.children?.firstOrNull;
     var text = '';
+    var language = '';
     if (code is md.Element && code.tag == 'code') {
       text = code.textContent;
+      language = code.attributes['class']?.replaceAll('language-', '') ?? '';
     } else {
       text = node.textContent;
     }
+    if (text.endsWith('\n')) text = text.substring(0, text.length - 1);
+    final highlighted = highlighter?.call(text, language);
+    // The container already paints the codeblock background; adding a
+    // background Paint on the text would double-paint and clash with
+    // highlighter colors. Selection is handled by the ambient SelectionArea.
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -115,11 +135,8 @@ class BlockBuilder {
         borderRadius: BorderRadius.circular(6),
       ),
       padding: style.codeblockPadding,
-      child: SelectableText(
-        text.endsWith('\n') ? text.substring(0, text.length - 1) : text,
-        style: style.codeStyle?.copyWith(
-          background: Paint()..color = style.codeblockBackground!,
-        ),
+      child: Text.rich(
+        highlighted ?? TextSpan(text: text, style: style.codeStyle),
       ),
     );
   }
@@ -174,8 +191,12 @@ class BlockBuilder {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
                     child: Text.rich(
-                      InlineBuilder(style: style, onLinkTap: onLinkTap)
-                          .build(contentNodes),
+                      InlineBuilder(
+                        style: style,
+                        onLinkTap: onLinkTap,
+                        highlighter: highlighter,
+                        imageBuilder: imageBuilder,
+                      ).build(contentNodes),
                       style: style.textStyle,
                     ),
                   ),
@@ -250,7 +271,10 @@ class BlockBuilder {
     );
   }
 
-  InlineSpan _inlines(md.Element node) =>
-      InlineBuilder(style: style, onLinkTap: onLinkTap)
-          .build(node.children ?? const []);
+  InlineSpan _inlines(md.Element node) => InlineBuilder(
+        style: style,
+        onLinkTap: onLinkTap,
+        highlighter: highlighter,
+        imageBuilder: imageBuilder,
+      ).build(node.children ?? const []);
 }

@@ -55,16 +55,16 @@ views, and chat bots.
 
 ## Features
 
-✅ Full CommonMark parsing (headings, lists, blockquotes, code fences, tables)
-✅ GFM extensions: tables, strikethrough, task lists, autolinks
-✅ Pure Flutter rendering — no web views, no platform channels
-✅ Selectable text (toggle with a single flag)
-✅ Link tap callbacks for custom navigation
-✅ Rich theming via `PrismMarkdownStyle`
-✅ Syntax highlighting hook (`highlighter`) for fenced code blocks
-✅ Custom image rendering (`imageBuilder`) with graceful fallbacks
-✅ Works on all six Flutter platforms: Android, iOS, macOS, Windows, Linux, Web
-✅ Efficient — Markdown is parsed once, only re-parsed when the text changes
+- ✅ Full CommonMark parsing — headings, lists, blockquotes, code fences, tables
+- ✅ GFM extensions — tables, strikethrough, task lists, autolinks
+- ✅ Pure Flutter rendering — no web views, no platform channels
+- ✅ Selectable text (toggle with a single flag)
+- ✅ Link tap callbacks for custom navigation
+- ✅ Rich theming via `PrismMarkdownStyle`
+- ✅ Syntax highlighting hook (`highlighter`) for fenced code blocks
+- ✅ Custom image rendering (`imageBuilder`) with graceful fallbacks
+- ✅ All six Flutter platforms: Android, iOS, macOS, Windows, Linux, Web
+- ✅ Efficient — Markdown is parsed once, only re-parsed when the text changes
 
 ## Installation
 
@@ -113,7 +113,7 @@ That's it — one widget, zero configuration.
 
 ## Render every element
 
-```dart
+````dart
 PrismMarkdown(
   '''
 # Heading 1
@@ -150,7 +150,7 @@ void main() {
 ---
 ''',
 );
-```
+````
 
 ## Make text selectable
 
@@ -290,9 +290,11 @@ error states — use it as-is or ignore it entirely.
 | `onTapLink(href)` | `onLinkTap: (href) => …` |
 | `styleSheet: MarkdownStyleSheet(...)` | `style: PrismMarkdownStyle(...)` |
 | `selectable: true` | `selectable: true` (same) |
-| Web-view dependency for some elements | None — pure Flutter |
+| `MarkdownStyleSheet.fromTheme(…)` | Automatic — falls back to your `TextTheme` |
 
-The API shape is deliberately close so migration is mostly a rename.
+The API shape is deliberately close so migration is mostly a rename. Like
+`flutter_markdown`, this package is pure Flutter — no web views, no platform
+channels.
 
 ## API reference
 
