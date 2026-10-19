@@ -1,0 +1,31 @@
+name: prism_markdown
+description: >-
+  A fast, plugin-free Markdown widget for Flutter with full CommonMark and
+  GFM support. The maintained replacement for the discontinued
+  flutter_markdown package.
+version: 0.1.0
+repository: https://github.com/airtechsolutions/prism_markdown
+issue_tracker: https://github.com/airtechsolutions/prism_markdown/issues
+topics:
+  - markdown
+  - widget
+  - text
+  - html
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  markdown: ^7.3.0
+  meta: ^1.16.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
