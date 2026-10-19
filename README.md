@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# prism_markdown
-=======
 # prism_markdown
 
 A fast, plugin-free Markdown widget for Flutter with full **CommonMark** and
@@ -68,4 +65,3 @@ conformance, and zero platform dependencies.
 ## License
 
 MIT — see [LICENSE](LICENSE).
->>>>>>> b6014d9 (Initial release: prism_markdown 0.1.0)
