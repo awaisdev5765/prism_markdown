@@ -121,9 +121,9 @@ class PrismMarkdownStyle {
     ];
     return PrismMarkdownStyle(
       textStyle: textStyle ?? base,
-      headingStyle:
-          headingStyle ?? headings,
-      codeStyle: codeStyle ??
+      headingStyle: headingStyle ?? headings,
+      codeStyle:
+          codeStyle ??
           (base.copyWith(
             fontFamily: 'monospace',
             fontSize: base.fontSize! * 0.9,
@@ -132,19 +132,22 @@ class PrismMarkdownStyle {
       codeBackground: codeBackground ?? codeColor,
       codeblockBackground: codeblockBackground ?? codeColor,
       codeblockPadding: codeblockPadding ?? const EdgeInsets.all(12),
-      blockquoteDecoration: blockquoteDecoration ??
+      blockquoteDecoration:
+          blockquoteDecoration ??
           BoxDecoration(
             border: Border(
               left: BorderSide(color: theme.dividerColor, width: 4),
             ),
           ),
-      blockquotePadding: blockquotePadding ??
+      blockquotePadding:
+          blockquotePadding ??
           const EdgeInsets.only(left: 12, top: 4, bottom: 4),
-      tableBorder: tableBorder ??
-          TableBorder.all(color: theme.dividerColor, width: 1),
+      tableBorder:
+          tableBorder ?? TableBorder.all(color: theme.dividerColor, width: 1),
       tableHeaderBackground:
           tableHeaderBackground ?? theme.colorScheme.surfaceContainerHighest,
-      linkStyle: linkStyle ??
+      linkStyle:
+          linkStyle ??
           base.copyWith(
             color: theme.colorScheme.primary,
             decoration: TextDecoration.underline,

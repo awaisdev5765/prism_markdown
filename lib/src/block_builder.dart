@@ -81,10 +81,7 @@ class BlockBuilder {
     );
     return Padding(
       padding: EdgeInsets.only(top: level == 0 ? 8 : 12, bottom: 6),
-      child: Text.rich(
-        _inlines(node),
-        style: effective,
-      ),
+      child: Text.rich(_inlines(node), style: effective),
     );
   }
 
@@ -148,7 +145,8 @@ class BlockBuilder {
       if (child is md.Element && child.tag == 'li') {
         index++;
         final marker = ordered ? '$index.' : '\u2022';
-        final isTask = child.attributes.containsKey('class') &&
+        final isTask =
+            child.attributes.containsKey('class') &&
             child.attributes['class']!.contains('task-list-item');
         String? checkbox;
         var itemChildren = child.children ?? const <md.Node>[];
@@ -182,10 +180,7 @@ class BlockBuilder {
               children: [
                 SizedBox(
                   width: ordered ? 28 : 16,
-                  child: Text(
-                    checkbox ?? marker,
-                    style: style.textStyle,
-                  ),
+                  child: Text(checkbox ?? marker, style: style.textStyle),
                 ),
                 Expanded(
                   child: Padding(
@@ -220,14 +215,14 @@ class BlockBuilder {
   Widget _table(md.Element node) {
     final rows = <TableRow>[];
     for (final child in node.children ?? const <md.Node>[]) {
-      if (child is md.Element && (child.tag == 'thead' || child.tag == 'tbody')) {
+      if (child is md.Element &&
+          (child.tag == 'thead' || child.tag == 'tbody')) {
         for (final tr in child.children ?? const <md.Node>[]) {
           if (tr is md.Element && tr.tag == 'tr') {
             final cells = <Widget>[];
             final isHeader = child.tag == 'thead';
             for (final td in tr.children ?? const <md.Node>[]) {
-              if (td is md.Element &&
-                  (td.tag == 'td' || td.tag == 'th')) {
+              if (td is md.Element && (td.tag == 'td' || td.tag == 'th')) {
                 cells.add(
                   Container(
                     color: isHeader ? style.tableHeaderBackground : null,
@@ -239,8 +234,9 @@ class BlockBuilder {
                       _inlines(td),
                       style: isHeader
                           ? (style.textStyle?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ) ?? const TextStyle(fontWeight: FontWeight.bold))
+                                  fontWeight: FontWeight.bold,
+                                ) ??
+                                const TextStyle(fontWeight: FontWeight.bold))
                           : style.textStyle,
                     ),
                   ),
@@ -254,10 +250,7 @@ class BlockBuilder {
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Table(
-        border: style.tableBorder,
-        children: rows,
-      ),
+      child: Table(border: style.tableBorder, children: rows),
     );
   }
 
@@ -272,9 +265,9 @@ class BlockBuilder {
   }
 
   InlineSpan _inlines(md.Element node) => InlineBuilder(
-        style: style,
-        onLinkTap: onLinkTap,
-        highlighter: highlighter,
-        imageBuilder: imageBuilder,
-      ).build(node.children ?? const []);
+    style: style,
+    onLinkTap: onLinkTap,
+    highlighter: highlighter,
+    imageBuilder: imageBuilder,
+  ).build(node.children ?? const []);
 }

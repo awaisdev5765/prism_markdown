@@ -99,15 +99,14 @@ class _PrismMarkdownState extends State<PrismMarkdown> {
     final document = md.Document(
       extensionSet: widget.extensionSet ?? md.ExtensionSet.gitHubWeb,
     );
-    return document.parseLines(
-      const LineSplitter().convert(data),
-    );
+    return document.parseLines(const LineSplitter().convert(data));
   }
 
   @override
   Widget build(BuildContext context) {
-    final resolvedStyle =
-        (widget.style ?? const PrismMarkdownStyle()).resolve(context);
+    final resolvedStyle = (widget.style ?? const PrismMarkdownStyle()).resolve(
+      context,
+    );
     final children = BlockBuilder(
       style: resolvedStyle,
       onLinkTap: widget.onLinkTap,
@@ -137,5 +136,4 @@ InlineSpan buildInlineSpans(
   List<md.Node> nodes,
   PrismMarkdownStyle style, {
   void Function(String href)? onLinkTap,
-}) =>
-    InlineBuilder(style: style, onLinkTap: onLinkTap).build(nodes);
+}) => InlineBuilder(style: style, onLinkTap: onLinkTap).build(nodes);

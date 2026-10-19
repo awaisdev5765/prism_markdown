@@ -59,10 +59,8 @@ class InlineBuilder {
           element.textContent,
           language.replaceFirst('language-', ''),
         );
-        return highlighted ?? TextSpan(
-          text: element.textContent,
-          style: style.codeStyle,
-        );
+        return highlighted ??
+            TextSpan(text: element.textContent, style: style.codeStyle);
       case 'del':
         return _wrap(
           element,
@@ -112,8 +110,7 @@ class InlineBuilder {
       text: inner is TextSpan ? inner.text : null,
       children: inner is TextSpan ? inner.children : [inner],
       style: style.linkStyle,
-      recognizer: TapGestureRecognizer()
-        ..onTap = () => onLinkTap?.call(href),
+      recognizer: TapGestureRecognizer()..onTap = () => onLinkTap?.call(href),
     );
   }
 
@@ -129,16 +126,15 @@ class InlineBuilder {
     // Build a lazy fallback: only constructs the network Image widget when
     // actually needed, so a custom [imageBuilder] avoids any network work.
     Widget fallback() => Image.network(
-          src,
-          semanticLabel: alt,
-          fit: BoxFit.scaleDown,
-          errorBuilder: (_, _, _) => SizedBox(
-            width: 48,
-            height: 48,
-            child: Icon(Icons.broken_image_outlined,
-                color: style.textStyle?.color),
-          ),
-        );
+      src,
+      semanticLabel: alt,
+      fit: BoxFit.scaleDown,
+      errorBuilder: (_, _, _) => SizedBox(
+        width: 48,
+        height: 48,
+        child: Icon(Icons.broken_image_outlined, color: style.textStyle?.color),
+      ),
+    );
 
     final builder = imageBuilder;
     if (builder != null) {

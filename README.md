@@ -338,6 +338,19 @@ also a nod to the popular Prism.js syntax highlighter.
 Contributions are welcome! Open an issue to discuss a feature or bug first,
 then submit a pull request with tests for any behavior you add or change.
 
+## The Prism package family
+
+These packages are designed to work together — e.g. use `prism_code_view`'s tokenizers via `prism_markdown`'s `highlighter` callback:
+
+| Package | What it does |
+| --- | --- |
+| [prism_markdown](https://pub.dev/packages/prism_markdown) | Markdown widget with full CommonMark + GFM support |
+| [prism_code_view](https://pub.dev/packages/prism_code_view) | Syntax-highlighted code viewer (Dart/JSON/YAML built in) |
+| [prism_adaptive_scaffold](https://pub.dev/packages/prism_adaptive_scaffold) | Responsive scaffolds: bottom bar → rail → extended rail |
+| [prism_adaptive_dialog](https://pub.dev/packages/prism_adaptive_dialog) | Dialogs that become bottom sheets on phones |
+
+All pure Flutter, all six platforms, MIT licensed, built to work together.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
