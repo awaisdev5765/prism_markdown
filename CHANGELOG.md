@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **Feature**: added `maxLines` and `overflow` parameters to `PrismMarkdown`
+  for truncating text blocks (headings, paragraphs, list items, table cells).
+  Text beyond `maxLines` is truncated with the specified `TextOverflow`
+  (defaults to ellipsis). Code blocks are never truncated. Implements the
+  most-requested feature from the discontinued `flutter_markdown`
+  (flutter/flutter#81739).
+
 ## 0.2.2
 
 - **Docs**: fixed broken "Render every element" code example on pub.dev

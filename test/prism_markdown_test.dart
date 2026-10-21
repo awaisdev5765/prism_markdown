@@ -174,4 +174,106 @@ void main() {
       );
     });
   });
+
+  group('maxLines / overflow truncation', () {
+    Future<void> pumpMd(
+      WidgetTester tester,
+      String md, {
+      int? maxLines,
+      TextOverflow? overflow,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PrismMarkdown(
+                md,
+                maxLines: maxLines,
+                overflow: overflow,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Text? findFirstRichTextText() {
+      final rich = find.byType(Text).evaluate().toList();
+      for (final element in rich) {
+        final widget = element.widget as Text;
+        if (widget.maxLines != null) return widget;
+      }
+      return null;
+    }
+
+    testWidgets('paragraph without maxLines is unconstrained', (tester) async {
+      await pumpMd(tester, 'Hello world');
+      final text = tester.widget<Text>(find.text('Hello world'));
+      expect(text.maxLines, isNull);
+      expect(text.overflow, isNull);
+    });
+
+    testWidgets('paragraph with maxLines gets constraint and default ellipsis', (
+      tester,
+    ) async {
+      await pumpMd(tester, 'Hello world', maxLines: 2);
+      final text = findFirstRichTextText();
+      expect(text, isNotNull);
+      expect(text!.maxLines, 2);
+      expect(text.overflow, TextOverflow.ellipsis);
+    });
+
+    testWidgets('custom overflow is passed through', (tester) async {
+      await pumpMd(
+        tester,
+        'Hello world',
+        maxLines: 1,
+        overflow: TextOverflow.fade,
+      );
+      final text = findFirstRichTextText();
+      expect(text!.maxLines, 1);
+      expect(text.overflow, TextOverflow.fade);
+    });
+
+    testWidgets('headings respect maxLines', (tester) async {
+      await pumpMd(tester, '# Heading', maxLines: 1);
+      final headings = find
+          .byType(Text)
+          .evaluate()
+          .map((e) => e.widget as Text)
+          .where((w) => w.maxLines == 1)
+          .toList();
+      expect(headings, isNotEmpty);
+    });
+
+    testWidgets('list items respect maxLines', (tester) async {
+      await pumpMd(tester, '- item one\n- item two', maxLines: 3);
+      final constrained = find
+          .byType(Text)
+          .evaluate()
+          .map((e) => e.widget as Text)
+          .where((w) => w.maxLines == 3)
+          .toList();
+      expect(constrained.length, 2);
+    });
+
+    testWidgets('code blocks are never truncated', (tester) async {
+      await pumpMd(
+        tester,
+        '```dart\nvoid main() { print("hello"); }\n```',
+        maxLines: 1,
+      );
+      final codeTexts = find
+          .byType(Text)
+          .evaluate()
+          .map((e) => e.widget as Text)
+          .where((w) => w.data != null && w.data!.contains('print'))
+          .toList();
+      for (final t in codeTexts) {
+        expect(t.maxLines, isNull,
+            reason: 'code blocks must not be constrained by maxLines');
+      }
+    });
+  });
 }

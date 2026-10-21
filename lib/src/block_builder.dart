@@ -12,6 +12,8 @@ class BlockBuilder {
     this.onLinkTap,
     this.highlighter,
     this.imageBuilder,
+    this.maxLines,
+    this.overflow,
   });
 
   /// Resolved visual style.
@@ -25,6 +27,24 @@ class BlockBuilder {
 
   /// Custom builder for inline images.
   final Widget Function(String src, String alt, Widget fallback)? imageBuilder;
+
+  /// Maximum number of lines for text blocks. See [PrismMarkdown.maxLines].
+  final int? maxLines;
+
+  /// How truncated text overflow is handled. See [PrismMarkdown.overflow].
+  final TextOverflow? overflow;
+
+  /// Builds a [Text.rich] widget applying the [maxLines]/[overflow]
+  /// constraints, if set.
+  Text _text(InlineSpan span, TextStyle? style) {
+    if (maxLines == null) return Text.rich(span, style: style);
+    return Text.rich(
+      span,
+      style: style,
+      maxLines: maxLines,
+      overflow: overflow ?? TextOverflow.ellipsis,
+    );
+  }
 
   /// Builds widgets from block [nodes].
   List<Widget> build(List<md.Node> nodes) {
@@ -81,14 +101,14 @@ class BlockBuilder {
     );
     return Padding(
       padding: EdgeInsets.only(top: level == 0 ? 8 : 12, bottom: 6),
-      child: Text.rich(_inlines(node), style: effective),
+      child: _text(_inlines(node), effective),
     );
   }
 
   Widget _paragraph(md.Element node) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Text.rich(_inlines(node), style: style.textStyle),
+      child: _text(_inlines(node), style.textStyle),
     );
   }
 
@@ -208,14 +228,14 @@ class BlockBuilder {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text.rich(
+                    child: _text(
                       InlineBuilder(
                         style: style,
                         onLinkTap: onLinkTap,
                         highlighter: highlighter,
                         imageBuilder: imageBuilder,
                       ).build(contentNodes),
-                      style: style.textStyle,
+                      style.textStyle,
                     ),
                   ),
                 ),
@@ -253,9 +273,9 @@ class BlockBuilder {
                       horizontal: 8,
                       vertical: 6,
                     ),
-                    child: Text.rich(
+                    child: _text(
                       _inlines(td),
-                      style: isHeader
+                      isHeader
                           ? (style.textStyle?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ) ??
