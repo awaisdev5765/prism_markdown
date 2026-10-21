@@ -32,6 +32,8 @@ class PrismMarkdown extends StatefulWidget {
     this.selectable = true,
     this.highlighter,
     this.imageBuilder,
+    this.maxLines,
+    this.overflow,
   });
 
   /// The markdown source to render.
@@ -70,6 +72,23 @@ class PrismMarkdown extends StatefulWidget {
   /// widget. Return any widget, e.g. `CachedNetworkImage` or a local
   /// asset loader. If null, images load from the network via [Image.network].
   final Widget Function(String src, String alt, Widget fallback)? imageBuilder;
+
+  /// Maximum number of lines a text block (heading, paragraph, list item, or
+  /// table cell) may occupy before being truncated.
+  ///
+  /// When set, text that wraps beyond [maxLines] is truncated using
+  /// [overflow] (defaults to [TextOverflow.ellipsis] when [maxLines] is set
+  /// but [overflow] is not). Code blocks are never truncated.
+  ///
+  /// Useful for card previews, list tiles, and chat bubbles that render
+  /// markdown content within fixed-height containers.
+  final int? maxLines;
+
+  /// How visual overflow of truncated text should be handled.
+  ///
+  /// Only applied when [maxLines] is set. Defaults to
+  /// [TextOverflow.ellipsis].
+  final TextOverflow? overflow;
 
   @override
   State<PrismMarkdown> createState() => _PrismMarkdownState();
@@ -112,6 +131,8 @@ class _PrismMarkdownState extends State<PrismMarkdown> {
       onLinkTap: widget.onLinkTap,
       highlighter: widget.highlighter,
       imageBuilder: widget.imageBuilder,
+      maxLines: widget.maxLines,
+      overflow: widget.overflow,
     ).build(_parsed);
 
     if (widget.selectable) {
