@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 - **Feature**: added `maxLines` and `overflow` parameters to `PrismMarkdown`
   for truncating text blocks (headings, paragraphs, list items, table cells).
