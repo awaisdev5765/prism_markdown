@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+- **Feature**: added `asyncParsing`, `placeholder`, and `parseRunner`
+  parameters to `PrismMarkdown`. When `asyncParsing` is true, markdown is
+  parsed in a background isolate via `Isolate.run` so long documents do not
+  block the UI thread — fixes scroll jitter when building many markdown
+  widgets in scrollable lists. A `placeholder` widget is shown while
+  parsing; `parseRunner` allows custom scheduling or synchronous testing.
+  Implements flutter/flutter#81772.
+
 ## 0.3.0
 
 - **Feature**: added `maxLines` and `overflow` parameters to `PrismMarkdown`

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -34,6 +35,9 @@ class PrismMarkdown extends StatefulWidget {
     this.imageBuilder,
     this.maxLines,
     this.overflow,
+    this.asyncParsing = false,
+    this.placeholder,
+    this.parseRunner,
   });
 
   /// The markdown source to render.
@@ -90,6 +94,33 @@ class PrismMarkdown extends StatefulWidget {
   /// [TextOverflow.ellipsis].
   final TextOverflow? overflow;
 
+  /// Whether to parse the markdown off the UI thread in a background
+  /// isolate.
+  ///
+  /// When true, parsing runs via [Isolate.run] so long documents do not
+  /// block the UI thread — useful for `ListView`s that build many
+  /// `PrismMarkdown` widgets, where synchronous parsing causes scroll
+  /// jitter (see flutter/flutter#81772). While parsing, [placeholder] is
+  /// displayed. Defaults to `false` (synchronous parsing, no isolate
+  /// overhead) which is faster for short documents.
+  final bool asyncParsing;
+
+  /// Widget shown while async parsing is in progress.
+  ///
+  /// Only used when [asyncParsing] is true. Defaults to an empty box.
+  final Widget? placeholder;
+
+  /// Overrides the async parse executor. Null by default, in which case
+  /// parsing runs in a background isolate via [Isolate.run].
+  ///
+  /// Provided for testing (widget tests cannot spawn real isolates) and for
+  /// custom scheduling (e.g. a shared worker pool). The returned future must
+  /// complete with the parsed node list for [data].
+  final Future<List<md.Node>> Function(
+    String data,
+    md.ExtensionSet? extensionSet,
+  )? parseRunner;
+
   @override
   State<PrismMarkdown> createState() => _PrismMarkdownState();
 }
@@ -97,32 +128,70 @@ class PrismMarkdown extends StatefulWidget {
 class _PrismMarkdownState extends State<PrismMarkdown> {
   List<md.Node> _parsed = const [];
   String _parsedFrom = '';
+  bool _parsing = false;
+  int _generation = 0;
 
   @override
   void initState() {
     super.initState();
-    _parsed = _parse(widget.data);
     _parsedFrom = widget.data;
+    if (widget.asyncParsing) {
+      _startAsyncParse(widget.data);
+    } else {
+      _parsed = _parse(widget.data);
+    }
   }
 
   @override
   void didUpdateWidget(covariant PrismMarkdown oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.data != _parsedFrom) {
-      _parsed = _parse(widget.data);
       _parsedFrom = widget.data;
+      if (widget.asyncParsing) {
+        _startAsyncParse(widget.data);
+      } else {
+        _parsed = _parse(widget.data);
+        _parsing = false;
+      }
     }
   }
 
+  void _startAsyncParse(String data) {
+    final extensionSet = widget.extensionSet;
+    final generation = ++_generation;
+    _parsing = true;
+    final runner =
+        widget.parseRunner ??
+        (String d, md.ExtensionSet? ext) =>
+            Isolate.run(() => _parseDocument(d, ext));
+    runner(data, extensionSet).then((result) {
+      if (!mounted || generation != _generation) return;
+      setState(() {
+        _parsed = result;
+        _parsing = false;
+      });
+    });
+  }
+
   List<md.Node> _parse(String data) {
+    return _parseDocument(data, widget.extensionSet);
+  }
+
+  static List<md.Node> _parseDocument(
+    String data,
+    md.ExtensionSet? extensionSet,
+  ) {
     final document = md.Document(
-      extensionSet: widget.extensionSet ?? md.ExtensionSet.gitHubWeb,
+      extensionSet: extensionSet ?? md.ExtensionSet.gitHubWeb,
     );
     return document.parseLines(const LineSplitter().convert(data));
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_parsing) {
+      return widget.placeholder ?? const SizedBox.shrink();
+    }
     final resolvedStyle = (widget.style ?? const PrismMarkdownStyle()).resolve(
       context,
     );
