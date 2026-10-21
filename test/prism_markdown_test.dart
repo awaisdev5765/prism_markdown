@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:prism_markdown/prism_markdown.dart';
 
 void main() {
@@ -274,6 +277,76 @@ void main() {
         expect(t.maxLines, isNull,
             reason: 'code blocks must not be constrained by maxLines');
       }
+    });
+  });
+
+  group('async parsing', () {
+    Future<List<md.Node>> syncRunner(
+      String data,
+      md.ExtensionSet? ext,
+    ) async {
+      final document = md.Document(
+        extensionSet: ext ?? md.ExtensionSet.gitHubWeb,
+      );
+      return document.parseLines(const LineSplitter().convert(data));
+    }
+
+    Future<void> pumpMd(
+      WidgetTester tester,
+      String md, {
+      Widget? placeholder,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PrismMarkdown(
+              md,
+              asyncParsing: true,
+              placeholder: placeholder,
+              parseRunner: syncRunner,
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('renders content after async parse completes', (tester) async {
+      await pumpMd(tester, '# Async Title\n\nHello async world');
+
+      // Content not yet available on the first frame.
+      expect(find.text('Async Title'), findsNothing);
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Async Title'), findsOneWidget);
+      expect(find.text('Hello async world'), findsOneWidget);
+    });
+
+    testWidgets('shows placeholder while parsing', (tester) async {
+      await pumpMd(
+        tester,
+        'Hello',
+        placeholder: const Text('LOADING'),
+      );
+
+      expect(find.text('LOADING'), findsOneWidget);
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('LOADING'), findsNothing);
+      expect(find.text('Hello'), findsOneWidget);
+    });
+
+    testWidgets('sync mode still parses immediately (no placeholder frame)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: PrismMarkdown('Instant')),
+        ),
+      );
+      expect(find.text('Instant'), findsOneWidget);
+      await tester.pumpAndSettle();
     });
   });
 }
